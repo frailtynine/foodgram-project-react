@@ -130,3 +130,10 @@ dmypy.json
 
 # .idea
 .idea
+
+# Precode studd 
+
+/infra
+/docs
+/frontend
+/postman-collection
