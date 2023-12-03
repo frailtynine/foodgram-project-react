@@ -131,9 +131,11 @@ dmypy.json
 # .idea
 .idea
 
-# Precode studd 
-
+# Precode stuff
 /infra
 /docs
 /frontend
 /postman-collection
+
+# Mac OS system files
+.DS_Store
