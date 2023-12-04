@@ -20,14 +20,18 @@ services:
       - media:/media
     depends_on:
       - db
+  copy_static:
+    image: busybox
+    volumes:
+      - ./frontend/build:/from
+      - static:/to
+    command: cp -r /from/. /to
   foodgram_gateway:
-    image: frailtynine/kittygram_gateway:latest
+    image: frailtynine/foodgram_gateway:latest
     env_file: .env
     ports:
       - 8000:80
     volumes:
       - static:/static/
       - media:/media/
-    depends_on:
-      - db
-      - foodgram_backend
+
