@@ -210,7 +210,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             recipe = get_object_or_404(Recipe, id=pk)
-            # Refactor this repetative abomination
             existing_user_recipe = self.check_existing_user_recipe(
                 request, recipe, field='is_in_shopping_cart'
             )
@@ -223,7 +222,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user_recipes = UserRecipe.objects.filter(
                     user=request.user,
                     is_in_shopping_cart=True
-                )
+        )
         ingredients = {}
         for user_recipe in user_recipes:
             for item in user_recipe.recipe.recipeingredient_set.all():

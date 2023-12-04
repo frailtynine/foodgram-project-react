@@ -211,8 +211,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # user validation
         if (
-            self.instance and
-            self.instance.author != self.context['request'].user
+            self.instance
+            and self.instance.author != self.context['request'].user
         ):
             raise PermissionDenied(
                 'You do not have permission to update this recipe'
