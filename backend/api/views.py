@@ -220,8 +220,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def prepare_shopping_cart(self, request):
         user_recipes = UserRecipe.objects.filter(
-                    user=request.user,
-                    is_in_shopping_cart=True
+            user=request.user,
+            is_in_shopping_cart=True
         )
         ingredients = {}
         for user_recipe in user_recipes:
