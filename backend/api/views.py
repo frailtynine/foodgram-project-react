@@ -149,8 +149,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_404_NOT_FOUND)
         existing_user_recipe = self.__check_existing_user_recipe(
-                request, recipe, field=field
-            )
+            request, recipe, field=field
+        )
         model = self.MODELS.get(field)
         if request.method == 'POST':
             if existing_user_recipe:

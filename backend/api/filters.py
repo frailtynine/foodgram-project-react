@@ -37,6 +37,6 @@ class RecipeFilter(rest_filters.FilterSet):
             return queryset.filter(
                 id__in=RecipeInShoppingCart.objects.filter(
                     user=self.request.user, is_in_shopping_cart=True
-                    ).values_list('recipe', flat=True)
+                ).values_list('recipe', flat=True)
             )
         return queryset
