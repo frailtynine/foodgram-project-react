@@ -18,6 +18,12 @@ services:
     volumes:
       - static:/static
       - media:/media
+  copy_static:
+    image: busybox
+    volumes:
+      - ./frontend/build:/from
+      - static:/to
+    command: cp -r /from/. /to
   foodgram_gateway:
     build: ./nginx/
     env_file: .env

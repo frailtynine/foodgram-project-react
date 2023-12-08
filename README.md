@@ -36,7 +36,7 @@ python manage.py migrate
 python manage.py load_db
 python manage.py createsuperuser
 python manage.py collectstatic
-cp -r collected_static/ /static/
+cp -r collected_static/. /static/static/
 ```
 
 Profit! 
@@ -44,5 +44,6 @@ Profit!
 # praktikum_new_diplom
 URL: foodgram-practicum.ddns.net
 
-login: pavelborisov
-password: yfctrjv1
+username: alex
+email: alex@ya.ru
+password: Admin12345

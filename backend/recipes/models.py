@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from colorfield.fields import ColorField
+
+from .validators import validate_positive
 
 
 User = get_user_model()
@@ -8,16 +11,15 @@ User = get_user_model()
 class Tag(models.Model):
     name = models.CharField('Название', max_length=200,
                             unique=True)
-    color = models.CharField('Цвет', max_length=7,
-                             unique=True)
+    color = ColorField('Цвет', unique=True)
     slug = models.SlugField('Слаг', unique=True)
-
-    def __str__(self) -> str:
-        return self.name
 
     class Meta:
         verbose_name = 'тег'
         verbose_name_plural = 'теги'
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Ingredient(models.Model):
@@ -25,12 +27,12 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField('Единица измерения',
                                         max_length=200)
 
-    def __str__(self) -> str:
-        return f'{self.name}, {self.measurement_unit}'
-
     class Meta:
         verbose_name = 'ингредиент'
         verbose_name_plural = 'ингредиенты'
+
+    def __str__(self) -> str:
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -46,7 +48,10 @@ class Recipe(models.Model):
     image = models.ImageField('Изображение', upload_to='recipes/')
     name = models.CharField('Название', max_length=200)
     text = models.TextField('Текст')
-    cooking_time = models.PositiveIntegerField('Время приготовления')
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления',
+        validators=(validate_positive,)
+    )
 
     class Meta:
         ordering = ['-id']
@@ -58,9 +63,16 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    amount = models.IntegerField()
+    ingredient = models.ForeignKey(Ingredient,
+                                   on_delete=models.CASCADE,
+                                   verbose_name='ингредиент')
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               verbose_name='рецепт')
+    amount = models.PositiveSmallIntegerField(
+        'Количество',
+        validators=(validate_positive,)
+    )
 
     class Meta:
         constraints = [
@@ -77,13 +89,17 @@ class RecipeIngredient(models.Model):
 
 
 class UserFollowing(models.Model):
-    user_follows = models.ForeignKey(User,
-                                     on_delete=models.CASCADE,
-                                     related_name='user_follows')
-    user_following = models.ForeignKey(User,
-                                       on_delete=models.CASCADE,
-                                       related_name='user_following'
-                                       )
+    user_follows = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='user_follows',
+        verbose_name='Пользователь')
+    user_following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='user_following',
+        verbose_name='Подписка на пользователя'
+    )
 
     class Meta:
         unique_together = ('user_follows', 'user_following')
@@ -97,15 +113,40 @@ class UserFollowing(models.Model):
         )
 
 
-class UserRecipe(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
+class AbstractUserRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь')
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
+            )
+        ]
+        abstract = True
 
     def __str__(self) -> str:
         return f'{self.user.get_username()} {self.recipe.name}'
 
+
+class RecipeFavorite(AbstractUserRecipe):
+    is_favorited = models.BooleanField('В избранном', default=False)
+
     class Meta:
-        verbose_name = 'рецепты пользователя'
-        verbose_name_plural = 'рецепты пользователей'
+        verbose_name = 'рецепт в избранном'
+        verbose_name_plural = 'рецепты в избранном'
+
+
+class RecipeInShoppingCart(AbstractUserRecipe):
+    is_in_shopping_cart = models.BooleanField('В корзине', default=False)
+
+    class Meta:
+        verbose_name = 'рецепт в корзине'
+        verbose_name_plural = 'рецепты в корзине'
