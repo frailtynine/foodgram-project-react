@@ -2,7 +2,6 @@ import base64
 
 from django.db import transaction
 from django.core.files.base import ContentFile
-# from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, validators
 
@@ -10,6 +9,9 @@ from recipes.models import (
     UserFollowing, Ingredient, Tag, Recipe, RecipeIngredient,
     RecipeFavorite, RecipeInShoppingCart
 )
+
+
+MAX_SMALL_INT_VALUE = 32767
 
 
 User = get_user_model()
@@ -27,7 +29,7 @@ class Base64ImageField(serializers.ImageField):
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, max_length=150)
     email = serializers.EmailField(
         required=True,
         validators=(validators.UniqueValidator(
@@ -141,7 +143,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(max_value=MAX_SMALL_INT_VALUE)
     name = serializers.CharField(source='ingredient.name', required=False)
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit',
@@ -161,6 +163,11 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         if amount < 1:
             raise serializers.ValidationError('Amount is below 1')
         return amount
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = instance.ingredient_id
+        return representation
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -174,7 +181,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
     )
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(max_value=MAX_SMALL_INT_VALUE)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -209,9 +216,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     def validate_tags(self, tags_data):
         if not tags_data:
             raise serializers.ValidationError('Tag field is empty')
-        # В ревью был комментарий, что можно просто привести к set.
-        # Но дока требует вернуть validation error если теги дублируются.
-        # Поэтому оставляю эту проверку на уникальность тегов.
         if len(tags_data) != len(set(tags_data)):
             raise serializers.ValidationError('Tags must be unique')
         return tags_data
@@ -232,14 +236,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         return ingredients_data
 
     def __create_ingredients(self, ingredients_data, recipe):
-        print(ingredients_data)
         for ingredient in ingredients_data:
-            print(ingredient)
-            RecipeIngredient.objects.update_or_create(
+            RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient=ingredient['id'],
-                defaults={'amount': ingredient['amount']}
+                amount=ingredient['amount']
             )
+
+    def __update_ingredients(self, ingredients_data, recipe):
+        recipe.ingredients.clear()
+        for ingredient in ingredients_data:
+            RecipeIngredient.objects.create(
+                    recipe=recipe,
+                    ingredient=ingredient['id'],
+                    amount=ingredient['amount']
+                )
 
     def validate(self, attrs):
         tags = attrs.get('tags')
@@ -270,7 +281,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                                                    instance.cooking_time)
         instance.save()
         instance.tags.set(tags_data)
-        self.__create_ingredients(ingredients_data, instance)
+        self.__update_ingredients(ingredients_data, instance)
         return instance
 
     def to_representation(self, instance):

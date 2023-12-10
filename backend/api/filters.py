@@ -24,19 +24,21 @@ class RecipeFilter(rest_filters.FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(
-                id__in=RecipeFavorite.objects.filter(
-                    user=self.request.user,
-                    is_favorited=True
-                ).values_list('recipe', flat=True)
-            )
+            if Recipe.objects.filter(author=self.request.user).exists():
+                return queryset.filter(
+                    id__in=RecipeFavorite.objects.filter(
+                        user=self.request.user,
+                        is_favorited=True
+                    ).values_list('recipe', flat=True)
+                )
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(
-                id__in=RecipeInShoppingCart.objects.filter(
-                    user=self.request.user, is_in_shopping_cart=True
-                ).values_list('recipe', flat=True)
-            )
+            if Recipe.objects.filter(author=self.request.user).exists():
+                return queryset.filter(
+                    id__in=RecipeInShoppingCart.objects.filter(
+                        user=self.request.user, is_in_shopping_cart=True
+                    ).values_list('recipe', flat=True)
+                )
         return queryset

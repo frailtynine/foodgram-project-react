@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (Ingredient, Recipe, RecipeIngredient, UserFollowing,
                      Tag, RecipeFavorite, RecipeInShoppingCart)
+from .forms import CustomUserCreationForm, CustomChangeForm
 
 
 User = get_user_model()
@@ -12,6 +13,22 @@ admin.site.unregister(User)
 
 class CustomUserAdmin(UserAdmin):
     search_fields = ('first_name', 'last_name', 'email')
+    add_form = CustomUserCreationForm
+    form = CustomChangeForm
+
+    add_fieldsets = (
+      (None, {
+          'classes': ('wide',),
+          'fields': ('username', 'first_name', 'last_name',
+                     'email', 'password1', 'password2',),
+      }),
+    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['first_name'].label = 'Имя'
+        form.base_fields['last_name'].label = 'Фамилия'
+        return form
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -25,7 +42,7 @@ class RecipeAdmin(admin.ModelAdmin):
             recipe=obj,
             is_favorited=True
         ).count()
-        first_digit = int(str(count[0]))
+        first_digit = int(str(count)[0])
         if 1 < first_digit < 5:
             return f'{count} раза'
         return f'{count} раз'
