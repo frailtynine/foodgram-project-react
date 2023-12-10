@@ -14,4 +14,4 @@ class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(max_length=254, required=True)
 
     class Meta:
-        fields = ('username', 'email', 'first_name',  'last_name')
+        fields = ('username', 'email', 'first_name', 'last_name')

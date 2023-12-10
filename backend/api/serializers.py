@@ -163,7 +163,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         if amount < 1:
             raise serializers.ValidationError('Amount is below 1')
         return amount
-    
+  
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['id'] = instance.ingredient_id
@@ -247,10 +247,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe.ingredients.clear()
         for ingredient in ingredients_data:
             RecipeIngredient.objects.create(
-                    recipe=recipe,
-                    ingredient=ingredient['id'],
-                    amount=ingredient['amount']
-                )
+                recipe=recipe,
+                ingredient=ingredient['id'],
+                amount=ingredient['amount']
+            )
 
     def validate(self, attrs):
         tags = attrs.get('tags')

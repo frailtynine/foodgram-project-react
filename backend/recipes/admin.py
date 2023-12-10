@@ -17,11 +17,10 @@ class CustomUserAdmin(UserAdmin):
     form = CustomChangeForm
 
     add_fieldsets = (
-      (None, {
-          'classes': ('wide',),
-          'fields': ('username', 'first_name', 'last_name',
-                     'email', 'password1', 'password2',),
-      }),
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'first_name', 'last_name',
+                       'email', 'password1', 'password2',), }),
     )
 
     def get_form(self, request, obj=None, **kwargs):
