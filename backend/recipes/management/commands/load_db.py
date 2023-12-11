@@ -19,12 +19,9 @@ class Command(BaseCommand):
             open(BASE_DIR.joinpath(file_path), encoding='utf8'),
             fieldnames=['name', 'measurement_unit']
         )
-        id = 1
         for row in reader:
             Ingredient.objects.update_or_create(
-                id=id,
                 name=row['name'],
                 measurement_unit=row['measurement_unit']
             )
-            id += 1
         print('Success')
