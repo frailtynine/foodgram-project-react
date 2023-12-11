@@ -30,16 +30,20 @@ class CustomUserAdmin(UserAdmin):
         return form
 
 
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+
+
 class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('author', 'name', 'tags__name')
     list_filter = ('tags__name',)
     readonly_fields = ('favorited_count',)
     list_display = ('name', 'author')
+    inlines = (RecipeIngredientInline,)
 
     def favorited_count(self, obj):
         count = RecipeFavorite.objects.filter(
             recipe=obj,
-            is_favorited=True
         ).count()
         first_digit = int(str(count)[0])
         if 1 < first_digit < 5:

@@ -28,7 +28,6 @@ class RecipeFilter(rest_filters.FilterSet):
                 return queryset.filter(
                     id__in=RecipeFavorite.objects.filter(
                         user=self.request.user,
-                        is_favorited=True
                     ).values_list('recipe', flat=True)
                 )
         return queryset
@@ -38,7 +37,7 @@ class RecipeFilter(rest_filters.FilterSet):
             if Recipe.objects.filter(author=self.request.user).exists():
                 return queryset.filter(
                     id__in=RecipeInShoppingCart.objects.filter(
-                        user=self.request.user, is_in_shopping_cart=True
+                        user=self.request.user
                     ).values_list('recipe', flat=True)
                 )
         return queryset

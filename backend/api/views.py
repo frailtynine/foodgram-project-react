@@ -94,11 +94,13 @@ class PasswordChangeView(generics.GenericAPIView):
     serializer_class = ChangePasswordSerializer
 
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        serializer = self.get_serializer(user, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if request.user.is_authenticated:
+            user = User.objects.get(id=request.user.id)
+            serializer = self.get_serializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -163,7 +165,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             model.objects.create(
                 user=request.user,
                 recipe=recipe,
-                **{field: True}
             )
             serializer = SimpleRecipeSerializer(recipe)
             return Response(serializer.data,
@@ -179,7 +180,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return model.objects.filter(
             user=request.user,
             recipe=recipe,
-            **{field: True}
         ).first()
 
     @action(methods=['POST', 'DELETE'], detail=True)
@@ -194,7 +194,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def prepare_shopping_cart(self, request):
         user_recipes = RecipeInShoppingCart.objects.filter(
             user=request.user,
-            is_in_shopping_cart=True
         )
         ingredients = {}
         for user_recipe in user_recipes:

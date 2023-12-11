@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from colorfield.fields import ColorField
 
 from .validators import validate_positive
@@ -17,6 +18,10 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'тег'
         verbose_name_plural = 'теги'
+
+    def save(self, *args, **kwargs):
+        self.color = self.color.upper()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.name
@@ -54,16 +59,10 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-id',)
         verbose_name = 'рецепт'
         verbose_name_plural = 'рецепты'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'author', 'ingredients',
-                        'tags', 'image', 'name', 'text', 'cooking_time'],
-                name='unique_recipe'
-            )
-        ]
+        unique_together = ('name', 'text', 'author',  'cooking_time')
 
     def __str__(self) -> str:
         return self.name
@@ -109,7 +108,12 @@ class UserFollowing(models.Model):
     )
 
     class Meta:
-        unique_together = ('user_follows', 'user_following')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user_follows', 'user_following'],
+                name='unique_user_following'
+            )
+        ]
         verbose_name = 'фолловеры'
         verbose_name_plural = 'фолловеры'
 
@@ -118,6 +122,10 @@ class UserFollowing(models.Model):
             f'{self.user_follows.get_username()} '
             f'следит за {self.user_following.get_username()}'
         )
+
+    def clean(self):
+        if self.user_follows == self.user_following:
+            raise ValidationError('Нельзя подписаться на себя')
 
 
 class AbstractUserRecipe(models.Model):
@@ -131,12 +139,6 @@ class AbstractUserRecipe(models.Model):
         verbose_name='Рецепт')
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_user_recipe'
-            )
-        ]
         abstract = True
 
     def __str__(self) -> str:
@@ -144,16 +146,24 @@ class AbstractUserRecipe(models.Model):
 
 
 class RecipeFavorite(AbstractUserRecipe):
-    is_favorited = models.BooleanField('В избранном', default=False)
-
     class Meta:
         verbose_name = 'рецепт в избранном'
         verbose_name_plural = 'рецепты в избранном'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipefavorite'
+            )
+        ]
 
 
 class RecipeInShoppingCart(AbstractUserRecipe):
-    is_in_shopping_cart = models.BooleanField('В корзине', default=False)
-
     class Meta:
         verbose_name = 'рецепт в корзине'
         verbose_name_plural = 'рецепты в корзине'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipeinshoppingcart'
+            )
+        ]

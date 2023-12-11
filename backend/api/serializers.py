@@ -9,6 +9,7 @@ from recipes.models import (
     UserFollowing, Ingredient, Tag, Recipe, RecipeIngredient,
     RecipeFavorite, RecipeInShoppingCart
 )
+from .validators import validate_non_empty
 
 
 MAX_SMALL_INT_VALUE = 32767
@@ -36,6 +37,10 @@ class UserSerializer(serializers.ModelSerializer):
             queryset=User.objects.all()
         ),)
     )
+    first_name = serializers.CharField(validators=[validate_non_empty],
+                                       max_length=150)
+    last_name = serializers.CharField(validators=[validate_non_empty],
+                                      max_length=150)
 
     class Meta:
         model = User
@@ -199,7 +204,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             and RecipeFavorite.objects.filter(
                 user=self.context['request'].user,
                 recipe=obj,
-                is_favorited=True
             ).exists()
         )
 
@@ -209,7 +213,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             and RecipeInShoppingCart.objects.filter(
                 user=self.context['request'].user,
                 recipe=obj,
-                is_in_shopping_cart=True
             ).exists()
         )
 
@@ -264,6 +267,20 @@ class RecipeSerializer(serializers.ModelSerializer):
         validated_data['author'] = self.context['request'].user
         ingredients_data = validated_data.pop('recipeingredient_set')
         tags_data = validated_data.pop('tags')
+        # Я не знаю, как решить это иначе. В ТЗ нет ничего про
+        # требования к рецептам, поэтому мы запретим создавать
+        # рецепты с одинаковыми названиями, автором, текстом и временем
+        # готовки. Если ожидается иное решение, мне нужна подсказка.
+        duplicate_recipe = Recipe.objects.filter(
+            author=validated_data['author'],
+            name=validated_data['name'],
+            text=validated_data['text'],
+            cooking_time=validated_data['cooking_time']
+        ).first()
+        if duplicate_recipe:
+            raise serializers.ValidationError(
+                'Recipe with the same details already exists'
+            )
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags_data)
         self.__create_ingredients(ingredients_data, recipe)
