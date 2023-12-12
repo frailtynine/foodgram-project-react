@@ -62,7 +62,6 @@ class Recipe(models.Model):
         ordering = ('-id',)
         verbose_name = 'рецепт'
         verbose_name_plural = 'рецепты'
-        unique_together = ('name', 'text', 'author',  'cooking_time')
 
     def __str__(self) -> str:
         return self.name

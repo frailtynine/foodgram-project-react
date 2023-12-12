@@ -24,7 +24,9 @@ class RecipeFilter(rest_filters.FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            if RecipeFavorite.objects.filter(user=self.request.user).exists():
+            if RecipeFavorite.objects.filter(
+                user=self.request.user
+            ).exists():
                 return queryset.filter(
                     id__in=RecipeFavorite.objects.filter(
                         user=self.request.user,
@@ -34,7 +36,9 @@ class RecipeFilter(rest_filters.FilterSet):
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            if RecipeInShoppingCart.objects.filter(user=self.request.user).exists():
+            if RecipeInShoppingCart.objects.filter(
+                user=self.request.user
+            ).exists():
                 return queryset.filter(
                     id__in=RecipeInShoppingCart.objects.filter(
                         user=self.request.user
