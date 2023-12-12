@@ -267,10 +267,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         validated_data['author'] = self.context['request'].user
         ingredients_data = validated_data.pop('recipeingredient_set')
         tags_data = validated_data.pop('tags')
-        # Я не знаю, как решить это иначе. В ТЗ нет ничего про
-        # требования к рецептам, поэтому мы запретим создавать
-        # рецепты с одинаковыми названиями, автором, текстом и временем
-        # готовки. Если ожидается иное решение, мне нужна подсказка.
         duplicate_recipe = Recipe.objects.filter(
             author=validated_data['author'],
             name=validated_data['name'],

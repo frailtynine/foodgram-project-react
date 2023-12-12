@@ -23,6 +23,15 @@ class Tag(models.Model):
         self.color = self.color.upper()
         super().save(*args, **kwargs)
 
+    def clean(self):
+        if (
+            Tag.objects
+            .filter(color__iexact=self.color)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise ValidationError('Цвет должен быть уникальным')
+
     def __str__(self) -> str:
         return self.name
 
