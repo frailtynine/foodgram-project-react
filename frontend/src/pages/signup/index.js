@@ -15,41 +15,41 @@ const SignUp = ({ onSignUp }) => {
     <Container>
       <MetaTags>
         <title>Регистрация</title>
-        <meta name="description" content="Продуктовый помощник - Регистрация" />
+        <meta name="description" content="Grocery Assistant - Sign Up" />
         <meta property="og:title" content="Регистрация" />
       </MetaTags>
-      <Title title='Регистрация' />
+      <Title title='Sing Up' />
       <Form className={styles.form} onSubmit={e => {
         e.preventDefault()
         onSignUp(values)
       }}>
         <Input
-          label='Имя'
+          label='Name'
           name='first_name'
           required
           onChange={handleChange}
         />
         <Input
-          label='Фамилия'
+          label='Surname'
           name='last_name'
           required
           onChange={handleChange}
         />
         <Input
-          label='Имя пользователя'
+          label='Username'
           name='username'
           required
           onChange={handleChange}
         />
 
         <Input
-          label='Адрес электронной почты'
+          label='E-mail'
           name='email'
           required
           onChange={handleChange}
         />
         <Input
-          label='Пароль'
+          label='Password'
           type='password'
           name='password'
           required
@@ -61,7 +61,7 @@ const SignUp = ({ onSignUp }) => {
           className={styles.button}
           disabled={!isValid}
         >
-          Создать аккаунт
+          Create account
         </Button>
       </Form>
     </Container>

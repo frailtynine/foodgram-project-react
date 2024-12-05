@@ -1,4 +1,4 @@
-import { Card, Title, Pagination, CardList, Container, Main, CheckboxGroup  } from '../../components'
+import { Card, Title, Pagination, CardList, Container, Main, CheckboxGroup } from '../../components'
 import styles from './styles.module.css'
 import { useRecipes } from '../../utils/index.js'
 import { useEffect } from 'react'
@@ -45,12 +45,12 @@ const Favorites = ({ updateOrders }) => {
   return <Main>
     <Container>
       <MetaTags>
-        <title>Избранное</title>
-        <meta name="description" content="Продуктовый помощник - Избранное" />
-        <meta property="og:title" content="Избранное" />
+        <title>Favorites</title>
+        <meta name="description" content="Grocery Assistant - Favourites" />
+        <meta property="og:title" content="Favourites" />
       </MetaTags>
       <div className={styles.title}>
-        <Title title='Избранное' />
+        <Title title='Favourites' />
         <CheckboxGroup
           values={tagsValue}
           handleChange={value => {
@@ -79,4 +79,3 @@ const Favorites = ({ updateOrders }) => {
 }
 
 export default Favorites
-
